@@ -16,16 +16,18 @@ type Calculation struct {
 }
 
 type BankDeposit struct {
-	Id             int
-	BankName       string
-	DepositName    string
-	Rate           float64
-	NumberOfMonths int
-	Capitalization bool
-	Expandable     bool
-	Calculations   []Calculation
-	EndSum         float64
-	TotalRevenue   float64
+	Id                  int
+	BankName            string
+	DepositName         string
+	Rate                float64
+	NumberOfMonths      int
+	Capitalization      bool
+	Expandable          bool
+	ExpandableLimitFlag bool
+	ExpandableLimitKoef float64
+	Calculations        []Calculation
+	EndSum              float64
+	TotalRevenue        float64
 }
 
 func GetBankDeposits() *[]BankDeposit {
@@ -35,7 +37,8 @@ func GetBankDeposits() *[]BankDeposit {
 	for rows.Next() {
 		var bankDeposit BankDeposit
 		err := rows.Scan(&bankDeposit.Id, &bankDeposit.BankName, &bankDeposit.DepositName, &bankDeposit.Rate,
-			&bankDeposit.NumberOfMonths, &bankDeposit.Capitalization, &bankDeposit.Expandable)
+			&bankDeposit.NumberOfMonths, &bankDeposit.Capitalization, &bankDeposit.Expandable,
+			&bankDeposit.ExpandableLimitFlag, &bankDeposit.ExpandableLimitKoef)
 		if err != nil {
 			panic(err)
 		}
@@ -67,22 +70,22 @@ func MakeCalculations(bankDeposits *[]BankDeposit, initialSum int, monthlyPaymen
 			}
 
 			if bankDeposit.Expandable {
+				preExpandSum := startSum
 				startSum += savings
-				if bankDeposit.Capitalization {
-
-				} else {
-					revenue = (startSum * bankDeposit.Rate * (depositLength / 366)) / 100
+				savings = 0
+				if bankDeposit.ExpandableLimitFlag && startSum > preExpandSum*bankDeposit.ExpandableLimitKoef {
+					savings = startSum - preExpandSum*bankDeposit.ExpandableLimitKoef
+					startSum = preExpandSum * bankDeposit.ExpandableLimitKoef
 				}
-				endSum = startSum + revenue
-			} else {
-				if bankDeposit.Capitalization {
-					revenue = startSum*math.Pow(1+bankDeposit.Rate/100/12, float64(bankDeposit.NumberOfMonths)) -
-						startSum
-				} else {
-					revenue = (startSum * bankDeposit.Rate * (depositLength / 366)) / 100
-				}
-				endSum = startSum + savings + revenue
 			}
+
+			if bankDeposit.Capitalization {
+				revenue = startSum*math.Pow(1+bankDeposit.Rate/100/12, float64(bankDeposit.NumberOfMonths)) -
+					startSum
+			} else {
+				revenue = (startSum * bankDeposit.Rate * (depositLength / 366)) / 100
+			}
+			endSum = startSum + savings + revenue
 
 			newCalculation.Revenue = revenue
 			newCalculation.EndSum = endSum
