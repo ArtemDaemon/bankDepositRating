@@ -35,9 +35,15 @@ func main() {
 	repos.MakeCalculations(bankDeposits, initialSum, monthlyPayment, investmentPeriod)
 	repos.SortByEndSum(bankDeposits)
 	for _, bankDeposit := range *bankDeposits {
-		fmt.Printf("%s %s (срок (мес.) - %d, ставка - %f%%) - Выручка: %f, Итог: %f", bankDeposit.BankName,
-			bankDeposit.DepositName, bankDeposit.NumberOfMonths, bankDeposit.Rate, bankDeposit.TotalRevenue,
-			bankDeposit.EndSum)
+		var capitalization string
+		if bankDeposit.Capitalization {
+			capitalization = "есть"
+		} else {
+			capitalization = "нет"
+		}
+		fmt.Printf("%s %s (срок (мес.) - %d, ставка - %f%%, капитализация - %s) - Выручка: %f, Итог: %f",
+			bankDeposit.BankName, bankDeposit.DepositName, bankDeposit.NumberOfMonths, bankDeposit.Rate,
+			capitalization, bankDeposit.TotalRevenue, bankDeposit.EndSum)
 		fmt.Println()
 	}
 	// TODO: Добавить ежемесячную капитализацию

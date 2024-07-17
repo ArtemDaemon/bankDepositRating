@@ -67,7 +67,8 @@ func MakeCalculations(bankDeposits *[]BankDeposit, initialSum int, monthlyPaymen
 			}
 
 			if bankDeposit.Capitalization {
-				revenue = startSum * math.Pow(1+bankDeposit.Rate/100/366, depositLength)
+				revenue = startSum*math.Pow(1+bankDeposit.Rate/100/12, float64(bankDeposit.NumberOfMonths)) -
+					startSum
 			} else {
 				revenue = (startSum * bankDeposit.Rate * (depositLength / 366)) / 100
 			}
