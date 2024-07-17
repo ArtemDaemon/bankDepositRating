@@ -22,6 +22,7 @@ type BankDeposit struct {
 	Rate           float64
 	NumberOfMonths int
 	Capitalization bool
+	Expandable     bool
 	Calculations   []Calculation
 	EndSum         float64
 	TotalRevenue   float64
@@ -34,7 +35,7 @@ func GetBankDeposits() *[]BankDeposit {
 	for rows.Next() {
 		var bankDeposit BankDeposit
 		err := rows.Scan(&bankDeposit.Id, &bankDeposit.BankName, &bankDeposit.DepositName, &bankDeposit.Rate,
-			&bankDeposit.NumberOfMonths, &bankDeposit.Capitalization)
+			&bankDeposit.NumberOfMonths, &bankDeposit.Capitalization, &bankDeposit.Expandable)
 		if err != nil {
 			panic(err)
 		}
@@ -44,7 +45,6 @@ func GetBankDeposits() *[]BankDeposit {
 }
 
 func MakeCalculations(bankDeposits *[]BankDeposit, initialSum int, monthlyPayment int, investmentPeriod int) {
-	investmentPeriodInMonths := investmentPeriod * 12
 	for i := range *bankDeposits {
 		bankDeposit := &(*bankDeposits)[i]
 		if bankDeposit.Calculations == nil {
@@ -53,7 +53,7 @@ func MakeCalculations(bankDeposits *[]BankDeposit, initialSum int, monthlyPaymen
 		startMonth := 0
 		startSum := float64(initialSum)
 		var endSum float64
-		for startMonth+bankDeposit.NumberOfMonths <= investmentPeriodInMonths {
+		for startMonth+bankDeposit.NumberOfMonths <= investmentPeriod {
 			var revenue float64
 			endMonth := startMonth + bankDeposit.NumberOfMonths
 			savings := float64(bankDeposit.NumberOfMonths * monthlyPayment)
@@ -66,13 +66,23 @@ func MakeCalculations(bankDeposits *[]BankDeposit, initialSum int, monthlyPaymen
 				Savings:    savings,
 			}
 
-			if bankDeposit.Capitalization {
-				revenue = startSum*math.Pow(1+bankDeposit.Rate/100/12, float64(bankDeposit.NumberOfMonths)) -
-					startSum
+			if bankDeposit.Expandable {
+				startSum += savings
+				if bankDeposit.Capitalization {
+
+				} else {
+					revenue = (startSum * bankDeposit.Rate * (depositLength / 366)) / 100
+				}
+				endSum = startSum + revenue
 			} else {
-				revenue = (startSum * bankDeposit.Rate * (depositLength / 366)) / 100
+				if bankDeposit.Capitalization {
+					revenue = startSum*math.Pow(1+bankDeposit.Rate/100/12, float64(bankDeposit.NumberOfMonths)) -
+						startSum
+				} else {
+					revenue = (startSum * bankDeposit.Rate * (depositLength / 366)) / 100
+				}
+				endSum = startSum + savings + revenue
 			}
-			endSum = startSum + savings + revenue
 
 			newCalculation.Revenue = revenue
 			newCalculation.EndSum = endSum
@@ -85,8 +95,8 @@ func MakeCalculations(bankDeposits *[]BankDeposit, initialSum int, monthlyPaymen
 		}
 		bankDeposit.EndSum = endSum
 
-		if startMonth != investmentPeriodInMonths {
-			diff := investmentPeriodInMonths - startMonth
+		if startMonth != investmentPeriod {
+			diff := investmentPeriod - startMonth
 			bankDeposit.EndSum += float64(diff * monthlyPayment)
 		}
 	}

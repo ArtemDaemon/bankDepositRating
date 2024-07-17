@@ -27,10 +27,10 @@ func main() {
 	fmt.Println("Введите сумму ежемесячного пополнения")
 	monthlyPayment := getValidInt()
 
-	fmt.Println("Введите срок инвестирования в годах")
+	fmt.Println("Введите срок инвестирования в месяцах")
 	investmentPeriod := getValidInt()
 
-	fmt.Printf("Итоговые вложения - %d\n", initialSum+monthlyPayment*investmentPeriod*12)
+	fmt.Printf("Итоговые вложения - %d\n", initialSum+monthlyPayment*investmentPeriod)
 
 	repos.MakeCalculations(bankDeposits, initialSum, monthlyPayment, investmentPeriod)
 	repos.SortByEndSum(bankDeposits)
@@ -46,5 +46,7 @@ func main() {
 			capitalization, bankDeposit.TotalRevenue, bankDeposit.EndSum)
 		fmt.Println()
 	}
-	// TODO: Добавить ежемесячную капитализацию
+	// TODO: Добвить ограничение на уввеличение вклада
+	// TODO: Добавить уровни ставок
+	// TODO: Добавить пополняемый капитализируемый вклад
 }
