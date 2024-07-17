@@ -2,7 +2,6 @@ package repos
 
 import (
 	"bankDepositRating/database"
-	"fmt"
 )
 
 type BankDeposit struct {
@@ -22,8 +21,7 @@ func GetBankDeposits() *[]BankDeposit {
 		err := rows.Scan(&bankDeposit.Id, &bankDeposit.BankName, &bankDeposit.DepositName, &bankDeposit.Rate,
 			&bankDeposit.NumberOfMonths)
 		if err != nil {
-			fmt.Println(err)
-			continue
+			panic(err)
 		}
 		bankDeposits = append(bankDeposits, bankDeposit)
 	}
