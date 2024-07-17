@@ -46,6 +46,4 @@ func main() {
 			capitalization, bankDeposit.TotalRevenue, bankDeposit.EndSum)
 		fmt.Println()
 	}
-	// TODO: Добавить уровни ставок
-	// TODO: Добавить пополняемый капитализируемый вклад
 }
